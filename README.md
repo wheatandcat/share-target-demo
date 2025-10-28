@@ -8,6 +8,8 @@ Android の共有シートから渡された URL を PWA が受け取り、そ�
 
 - https://share-target-demo.vercel.app/
 
+<img src="./docs/screenshot.png" alt="screenshot" />
+
 ## 技術スタック
 
 - React + Vite + Tailwind CSS

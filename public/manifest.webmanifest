@@ -1,6 +1,6 @@
 {
-  "name": "Web Share Target デモ",
-  "short_name": "Share Demo",
+  "name": "Share Target API",
+  "short_name": "Share Target API",
   "description": "Web Share Target APIのデモアプリ - 共有されたURLパラメータを表示します",
   "start_url": "/",
   "display": "standalone",
