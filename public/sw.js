@@ -42,7 +42,7 @@ self.addEventListener("fetch", (event) => {
         if (title) params.set("title", title);
         if (urlParam) params.set("url", urlParam);
 
-        return Response.redirect(`/share-target?${params.toString()}`, 303);
+        return Response.redirect(`/?${params.toString()}`, 303);
       })()
     );
     return;
