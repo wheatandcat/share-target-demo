@@ -13,29 +13,6 @@ type ShareData = {
   receivedAt: Date;
 };
 
-type BeforeInstallPromptEvent = Event & {
-  readonly platforms?: string[];
-  readonly userChoice: Promise<{
-    outcome: "accepted" | "dismissed";
-    platform: string;
-  }>;
-  prompt: () => Promise<void>;
-};
-
-const getIsStandaloneMode = () => {
-  if (typeof window === "undefined") {
-    return false;
-  }
-
-  const hasStandaloneDisplay =
-    typeof window.matchMedia === "function" &&
-    window.matchMedia("(display-mode: standalone)").matches;
-  const hasNavigatorStandalone =
-    (navigator as Navigator & { standalone?: boolean }).standalone === true;
-
-  return Boolean(hasStandaloneDisplay || hasNavigatorStandalone);
-};
-
 const sanitizePayload = (payload: SharePayload): ShareData | null => {
   if (!payload) {
     return null;
@@ -71,14 +48,37 @@ function App(): JSX.Element {
   const [shareData, setShareData] = useState<ShareData | null>(() =>
     getShareDataFromLocation()
   );
-  const [installPromptEvent, setInstallPromptEvent] =
-    useState<BeforeInstallPromptEvent | null>(null);
-  const [installStatusMessage, setInstallStatusMessage] = useState<
-    string | null
-  >(null);
-  const [isStandalone, setIsStandalone] = useState<boolean>(() =>
-    getIsStandaloneMode()
-  );
+
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showInstallButton, setShowInstallButton] = useState(false);
+
+  useEffect(() => {
+    const handler = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallButton(true);
+    };
+
+    window.addEventListener("beforeinstallprompt", handler);
+
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handler);
+    };
+  }, []);
+
+  const handleInstall = async () => {
+    if (!deferredPrompt) return;
+
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+
+    if (outcome === "accepted") {
+      alert("インストール完了");
+    }
+
+    setDeferredPrompt(null);
+    setShowInstallButton(false);
+  };
 
   const clearShareData = useCallback(() => {
     setShareData(null);
@@ -127,57 +127,6 @@ function App(): JSX.Element {
     return () =>
       document.removeEventListener("visibilitychange", handleVisibility);
   }, []);
-
-  useEffect(() => {
-    const handleBeforeInstallPrompt = (event: Event) => {
-      event.preventDefault();
-      setInstallPromptEvent(event as BeforeInstallPromptEvent);
-      setInstallStatusMessage(null);
-    };
-
-    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-
-    return () =>
-      window.removeEventListener(
-        "beforeinstallprompt",
-        handleBeforeInstallPrompt
-      );
-  }, []);
-
-  useEffect(() => {
-    const handleAppInstalled = () => {
-      setIsStandalone(true);
-      setInstallPromptEvent(null);
-      setInstallStatusMessage("ホーム画面への追加が完了しました。");
-    };
-
-    window.addEventListener("appinstalled", handleAppInstalled);
-
-    return () => window.removeEventListener("appinstalled", handleAppInstalled);
-  }, []);
-
-  const handleInstallClick = useCallback(async () => {
-    if (!installPromptEvent) {
-      return;
-    }
-
-    try {
-      setInstallStatusMessage(null);
-      await installPromptEvent.prompt();
-      const { outcome } = await installPromptEvent.userChoice;
-
-      if (outcome === "accepted") {
-        setInstallStatusMessage("ホーム画面への追加が完了しました。");
-        setInstallPromptEvent(null);
-      } else {
-        setInstallStatusMessage("ホーム画面への追加をキャンセルしました。");
-        setInstallPromptEvent(null);
-      }
-    } catch (error) {
-      console.error("Install prompt failed:", error);
-      setInstallStatusMessage("インストール処理でエラーが発生しました。");
-    }
-  }, [installPromptEvent]);
 
   const content = useMemo(() => {
     if (!shareData) {
@@ -234,45 +183,24 @@ function App(): JSX.Element {
             PWA Demo
           </p>
           <h1 className="mt-2 text-3xl font-bold text-slate-100">
-            Share Target Demo
+            Share Target Demo2
           </h1>
           <p className="mt-3 text-slate-300">
             Android の共有シートから受け取ったタイトル・テキスト・URL
             を即座に表示するデモです2
           </p>
-          {(installPromptEvent && !isStandalone) || installStatusMessage ? (
+          {showInstallButton ? (
             <section
               className="mt-6 space-y-3 rounded-lg border border-slate-700 bg-slate-800/60 p-4"
               aria-label="インストール案内"
             >
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h2 className="text-base font-semibold text-sky-300">
-                    ホーム画面に追加
-                  </h2>
-                  <p className="mt-1 text-sm text-slate-300">
-                    ブラウザから直接起動できるショートカットをホーム画面に配置できます。
-                  </p>
-                </div>
-                {installPromptEvent && !isStandalone ? (
-                  <button
-                    type="button"
-                    onClick={handleInstallClick}
-                    className="inline-flex items-center justify-center rounded-md bg-sky-500 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-sky-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-200"
-                  >
-                    ホーム画面に追加
-                  </button>
-                ) : null}
-              </div>
-              {installStatusMessage ? (
-                <p
-                  className="text-sm text-slate-400"
-                  role="status"
-                  aria-live="polite"
-                >
-                  {installStatusMessage}
-                </p>
-              ) : null}
+              <button
+                type="button"
+                onClick={handleInstall}
+                className="inline-flex items-center justify-center rounded-md bg-sky-500 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-sky-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-200"
+              >
+                ホーム画面に追加
+              </button>
             </section>
           ) : null}
         </header>
