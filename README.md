@@ -6,9 +6,11 @@ Android の共有シートから渡された URL を PWA が受け取り、そ�
 
 ■ URL
 
-- https://share-target-demo.vercel.app/
+https://share-target-demo.vercel.app/
 
-<img src="./docs/screenshot.png" alt="screenshot" />
+■ QR コード
+
+<img src="./docs/img_qr.png" alt="screenshot"  width="150" />
 
 ## 技術スタック
 

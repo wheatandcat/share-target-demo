@@ -145,25 +145,35 @@ function App(): JSX.Element {
     return (
       <div className="space-y-4 rounded-lg border border-slate-600 bg-slate-800/60 p-6 shadow-lg">
         {title && (
-          <h2 className="text-xl font-semibold text-sky-300" aria-live="polite">
-            {title}
-          </h2>
+          <div>
+            <p className="text-sm text-slate-400">Title</p>
+            <h2
+              className="text-xl font-semibold text-sky-300"
+              aria-live="polite"
+            >
+              {title}
+            </h2>
+          </div>
         )}
-        {text && <p className="text-slate-200">{text}</p>}
+        {text && (
+          <div>
+            <p className="text-sm text-slate-400">Text</p>
+            <p className="text-slate-200">{text}</p>
+          </div>
+        )}
         {url && (
-          <a
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 break-all text-sky-300 underline underline-offset-4 hover:text-sky-200"
-          >
-            {url}
-          </a>
+          <div>
+            <p className="text-sm text-slate-400">URL</p>
+            <a
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 break-all text-sky-300 underline underline-offset-4 hover:text-sky-200"
+            >
+              {url}
+            </a>
+          </div>
         )}
-        <dl className="text-sm text-slate-400">
-          <dt className="font-medium text-slate-300">受信日時</dt>
-          <dd>{receivedAt.toLocaleString()}</dd>
-        </dl>
         <button
           type="button"
           onClick={clearShareData}
