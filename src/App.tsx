@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 type SharePayload = {
   title?: string | null;
@@ -15,17 +15,21 @@ type ShareData = {
 
 type BeforeInstallPromptEvent = Event & {
   readonly platforms?: string[];
-  readonly userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
+  readonly userChoice: Promise<{
+    outcome: "accepted" | "dismissed";
+    platform: string;
+  }>;
   prompt: () => Promise<void>;
 };
 
 const getIsStandaloneMode = () => {
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     return false;
   }
 
   const hasStandaloneDisplay =
-    typeof window.matchMedia === 'function' && window.matchMedia('(display-mode: standalone)').matches;
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(display-mode: standalone)").matches;
   const hasNavigatorStandalone =
     (navigator as Navigator & { standalone?: boolean }).standalone === true;
 
@@ -37,9 +41,9 @@ const sanitizePayload = (payload: SharePayload): ShareData | null => {
     return null;
   }
 
-  const title = payload.title?.toString().trim() ?? '';
-  const text = payload.text?.toString().trim() ?? '';
-  const url = payload.url?.toString().trim() ?? '';
+  const title = payload.title?.toString().trim() ?? "";
+  const text = payload.text?.toString().trim() ?? "";
+  const url = payload.url?.toString().trim() ?? "";
 
   if (!title && !text && !url) {
     return null;
@@ -57,63 +61,71 @@ const getShareDataFromLocation = () => {
   const params = new URLSearchParams(window.location.search);
 
   return sanitizePayload({
-    title: params.get('title'),
-    text: params.get('text'),
-    url: params.get('url'),
+    title: params.get("title"),
+    text: params.get("text"),
+    url: params.get("url"),
   });
 };
 
 function App(): JSX.Element {
-  const [shareData, setShareData] = useState<ShareData | null>(() => getShareDataFromLocation());
-  const [installPromptEvent, setInstallPromptEvent] = useState<BeforeInstallPromptEvent | null>(null);
-  const [installStatusMessage, setInstallStatusMessage] = useState<string | null>(null);
-  const [isStandalone, setIsStandalone] = useState<boolean>(() => getIsStandaloneMode());
+  const [shareData, setShareData] = useState<ShareData | null>(() =>
+    getShareDataFromLocation()
+  );
+  const [installPromptEvent, setInstallPromptEvent] =
+    useState<BeforeInstallPromptEvent | null>(null);
+  const [installStatusMessage, setInstallStatusMessage] = useState<
+    string | null
+  >(null);
+  const [isStandalone, setIsStandalone] = useState<boolean>(() =>
+    getIsStandaloneMode()
+  );
 
   const clearShareData = useCallback(() => {
     setShareData(null);
-    window.history.replaceState({}, '', window.location.pathname);
+    window.history.replaceState({}, "", window.location.pathname);
   }, []);
 
   useEffect(() => {
-    if (!('serviceWorker' in navigator) || !navigator.serviceWorker) {
+    if (!("serviceWorker" in navigator) || !navigator.serviceWorker) {
       return;
     }
 
     const handleMessage = (event: MessageEvent) => {
       const { type, payload } = event.data || {};
-      if (type !== 'share-target') {
+      if (type !== "share-target") {
         return;
       }
 
       const data = sanitizePayload(payload);
       if (data) {
         setShareData(data);
-        window.history.replaceState({}, '', window.location.pathname);
+        window.history.replaceState({}, "", window.location.pathname);
       }
     };
 
-    navigator.serviceWorker.addEventListener('message', handleMessage);
+    navigator.serviceWorker.addEventListener("message", handleMessage);
 
     return () => {
-      navigator.serviceWorker.removeEventListener('message', handleMessage);
+      navigator.serviceWorker.removeEventListener("message", handleMessage);
     };
   }, []);
 
   useEffect(() => {
     const handleVisibility = () => {
-      if (document.visibilityState !== 'visible') {
+      if (document.visibilityState !== "visible") {
         return;
       }
 
       const data = getShareDataFromLocation();
       if (data) {
         setShareData(data);
-        window.history.replaceState({}, '', window.location.pathname);
+        window.history.replaceState({}, "", window.location.pathname);
       }
     };
 
-    document.addEventListener('visibilitychange', handleVisibility);
-    return () => document.removeEventListener('visibilitychange', handleVisibility);
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibility);
   }, []);
 
   useEffect(() => {
@@ -123,21 +135,25 @@ function App(): JSX.Element {
       setInstallStatusMessage(null);
     };
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
 
-    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    return () =>
+      window.removeEventListener(
+        "beforeinstallprompt",
+        handleBeforeInstallPrompt
+      );
   }, []);
 
   useEffect(() => {
     const handleAppInstalled = () => {
       setIsStandalone(true);
       setInstallPromptEvent(null);
-      setInstallStatusMessage('ホーム画面への追加が完了しました。');
+      setInstallStatusMessage("ホーム画面への追加が完了しました。");
     };
 
-    window.addEventListener('appinstalled', handleAppInstalled);
+    window.addEventListener("appinstalled", handleAppInstalled);
 
-    return () => window.removeEventListener('appinstalled', handleAppInstalled);
+    return () => window.removeEventListener("appinstalled", handleAppInstalled);
   }, []);
 
   const handleInstallClick = useCallback(async () => {
@@ -150,16 +166,16 @@ function App(): JSX.Element {
       await installPromptEvent.prompt();
       const { outcome } = await installPromptEvent.userChoice;
 
-      if (outcome === 'accepted') {
-        setInstallStatusMessage('ホーム画面への追加が完了しました。');
+      if (outcome === "accepted") {
+        setInstallStatusMessage("ホーム画面への追加が完了しました。");
         setInstallPromptEvent(null);
       } else {
-        setInstallStatusMessage('ホーム画面への追加をキャンセルしました。');
+        setInstallStatusMessage("ホーム画面への追加をキャンセルしました。");
         setInstallPromptEvent(null);
       }
     } catch (error) {
-      console.error('Install prompt failed:', error);
-      setInstallStatusMessage('インストール処理でエラーが発生しました。');
+      console.error("Install prompt failed:", error);
+      setInstallStatusMessage("インストール処理でエラーが発生しました。");
     }
   }, [installPromptEvent]);
 
@@ -214,10 +230,15 @@ function App(): JSX.Element {
     <div className="min-h-screen bg-slate-900 text-slate-100">
       <div className="mx-auto flex min-h-screen max-w-3xl flex-col gap-6 px-4 py-10">
         <header>
-          <p className="text-sm font-semibold uppercase tracking-wide text-sky-400">PWA Demo</p>
-          <h1 className="mt-2 text-3xl font-bold text-slate-100">Share Target Demo</h1>
+          <p className="text-sm font-semibold uppercase tracking-wide text-sky-400">
+            PWA Demo
+          </p>
+          <h1 className="mt-2 text-3xl font-bold text-slate-100">
+            Share Target Demo
+          </h1>
           <p className="mt-3 text-slate-300">
-            Android の共有シートから受け取ったタイトル・テキスト・URL を即座に表示するデモです。
+            Android の共有シートから受け取ったタイトル・テキスト・URL
+            を即座に表示するデモです2
           </p>
           {(installPromptEvent && !isStandalone) || installStatusMessage ? (
             <section
@@ -226,7 +247,9 @@ function App(): JSX.Element {
             >
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <h2 className="text-base font-semibold text-sky-300">ホーム画面に追加</h2>
+                  <h2 className="text-base font-semibold text-sky-300">
+                    ホーム画面に追加
+                  </h2>
                   <p className="mt-1 text-sm text-slate-300">
                     ブラウザから直接起動できるショートカットをホーム画面に配置できます。
                   </p>
@@ -242,7 +265,11 @@ function App(): JSX.Element {
                 ) : null}
               </div>
               {installStatusMessage ? (
-                <p className="text-sm text-slate-400" role="status" aria-live="polite">
+                <p
+                  className="text-sm text-slate-400"
+                  role="status"
+                  aria-live="polite"
+                >
                   {installStatusMessage}
                 </p>
               ) : null}
@@ -251,7 +278,10 @@ function App(): JSX.Element {
         </header>
         <main className="flex-1">{content}</main>
         <footer className="border-t border-slate-800 pt-4 text-sm text-slate-500">
-          <p>React + Vite + Tailwind CSS で構築された PWA デモアプリケーションです。</p>
+          <p>
+            React + Vite + Tailwind CSS で構築された PWA
+            デモアプリケーションです。
+          </p>
         </footer>
       </div>
     </div>
