@@ -40,6 +40,7 @@ self.addEventListener("fetch", (event) => {
 
         const params = new URLSearchParams();
         if (title) params.set("title", title);
+        if (text) params.set("text", text);
         if (urlParam) params.set("url", urlParam);
 
         return Response.redirect(`/?${params.toString()}`, 303);

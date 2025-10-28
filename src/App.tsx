@@ -180,10 +180,10 @@ function App(): JSX.Element {
       <div className="mx-auto flex min-h-screen max-w-3xl flex-col gap-6 px-4 py-10">
         <header>
           <p className="text-sm font-semibold uppercase tracking-wide text-sky-400">
-            PWA Demo
+            DEMO
           </p>
           <h1 className="mt-2 text-3xl font-bold text-slate-100">
-            Share Target Demo3
+            Web Share Target API
           </h1>
           <p className="mt-3 text-slate-300">
             Android の共有シートから受け取ったタイトル・テキスト・URL
@@ -201,12 +201,6 @@ function App(): JSX.Element {
           )}
         </header>
         <main className="flex-1">{content}</main>
-        <footer className="border-t border-slate-800 pt-4 text-sm text-slate-500">
-          <p>
-            React + Vite + Tailwind CSS で構築された PWA
-            デモアプリケーションです。
-          </p>
-        </footer>
       </div>
     </div>
   );
