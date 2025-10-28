@@ -183,26 +183,22 @@ function App(): JSX.Element {
             PWA Demo
           </p>
           <h1 className="mt-2 text-3xl font-bold text-slate-100">
-            Share Target Demo2
+            Share Target Demo3
           </h1>
           <p className="mt-3 text-slate-300">
             Android の共有シートから受け取ったタイトル・テキスト・URL
-            を即座に表示するデモです2
+            を即座に表示するデモです
           </p>
-          {showInstallButton ? (
-            <section
-              className="mt-6 space-y-3 rounded-lg border border-slate-700 bg-slate-800/60 p-4"
-              aria-label="インストール案内"
+          <br />
+          {showInstallButton && (
+            <button
+              type="button"
+              onClick={handleInstall}
+              className="inline-flex items-center justify-center rounded-md bg-sky-500 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-sky-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-200"
             >
-              <button
-                type="button"
-                onClick={handleInstall}
-                className="inline-flex items-center justify-center rounded-md bg-sky-500 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-sky-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-200"
-              >
-                ホーム画面に追加
-              </button>
-            </section>
-          ) : null}
+              ホーム画面に追加
+            </button>
+          )}
         </header>
         <main className="flex-1">{content}</main>
         <footer className="border-t border-slate-800 pt-4 text-sm text-slate-500">

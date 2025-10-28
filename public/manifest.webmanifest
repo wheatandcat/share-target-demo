@@ -1,11 +1,12 @@
 {
-  "name": "Share Target Demo",
-  "short_name": "ShareDemo",
-  "description": "Android 共有シートと連携する PWA デモアプリ",
+  "name": "Web Share Target デモ",
+  "short_name": "Share Demo",
+  "description": "Web Share Target APIのデモアプリ - 共有されたURLパラメータを表示します",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#5B8DEE",
+  "orientation": "portrait-primary",
   "icons": [
     {
       "src": "/icon.svg",
@@ -23,7 +24,7 @@
   "share_target": {
     "action": "/share-target",
     "method": "POST",
-    "enctype": "multipart/form-data",
+    "enctype": "application/x-www-form-urlencoded",
     "params": {
       "title": "title",
       "text": "text",

@@ -1,45 +1,84 @@
+const CACHE_NAME = "url-share-v1";
+const urlsToCache = ["/", "/index.html", "/manifest.json", "/icon.svg"];
+
 self.addEventListener("install", (event) => {
-  event.waitUntil(self.skipWaiting());
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(urlsToCache).catch((err) => {
+        console.error("Failed to cache:", err);
+      });
+    })
+  );
+  self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (cacheName !== CACHE_NAME) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+  );
+  self.clients.claim();
 });
-
-const shareTargetAction = "/share-target";
 
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
 
-  if (url.pathname === shareTargetAction && event.request.method === "POST") {
-    event.respondWith(Response.redirect("/"));
-    event.waitUntil(handleShareTarget(event));
-  }
-});
+  if (event.request.method === "POST" && url.pathname === "/share-target") {
+    event.respondWith(
+      (async () => {
+        const formData = await event.request.formData();
+        const title = formData.get("title") || "";
+        const text = formData.get("text") || "";
+        const urlParam = formData.get("url") || text || "";
 
-async function handleShareTarget(event) {
-  const formData = await event.request.formData();
-  const sharedData = {
-    title: formData.get("title") || "",
-    text: formData.get("text") || "",
-    url: formData.get("url") || "",
-  };
+        const params = new URLSearchParams();
+        if (title) params.set("title", title);
+        if (urlParam) params.set("url", urlParam);
 
-  const windowClients = await self.clients.matchAll({
-    type: "window",
-    includeUncontrolled: true,
-  });
-
-  if (windowClients.length === 0) {
-    const client = await self.clients.openWindow("/");
-    if (client) {
-      client.postMessage({ type: "share-target", payload: sharedData });
-    }
+        return Response.redirect(`/share-target?${params.toString()}`, 303);
+      })()
+    );
     return;
   }
 
-  for (const client of windowClients) {
-    client.postMessage({ type: "share-target", payload: sharedData });
-    client.focus();
+  if (event.request.method !== "GET") {
+    return;
   }
-}
+
+  event.respondWith(
+    caches.match(event.request).then((response) => {
+      if (response) {
+        return response;
+      }
+
+      return fetch(event.request)
+        .then((response) => {
+          if (
+            !response ||
+            response.status !== 200 ||
+            response.type !== "basic"
+          ) {
+            return response;
+          }
+
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
+
+          return response;
+        })
+        .catch((error) => {
+          console.error("Fetch failed:", error);
+          throw error;
+        });
+    })
+  );
+});
