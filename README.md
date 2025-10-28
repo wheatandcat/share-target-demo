@@ -1,4 +1,4 @@
-# Share Target Demo
+# DEMO: Web Share Target API
 
 ## 概要
 
