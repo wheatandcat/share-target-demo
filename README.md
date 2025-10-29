@@ -33,10 +33,6 @@ Android 端末で以下の QR コードを読み取ると、デモアプリが�
 
 <img src="./docs/img_003.png" alt="screenshot"  width="200" />
 
-以下の画面が表示されて、URL を入力して送信をタッチ。
-
-<img src="./docs/img_004.png" alt="screenshot"  width="200" />
-
 共有された URL の情報が画面にパラメータとして渡されていることが確認できる。
 
-<img src="./docs/img_005.png" alt="screenshot"  width="200" />
+<img src="./docs/img_004.png" alt="screenshot"  width="200" />
